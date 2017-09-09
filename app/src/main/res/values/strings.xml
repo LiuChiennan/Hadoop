@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Hadoop</string>
+    <string name="button_name">刷新</string>
+    <string name="sphints">选择一个节点</string>
+    <string-array name="node">
+        <item>master</item>
+        <item>slave1</item>
+        <item>slave2</item>
+        <item>all</item>
+    </string-array>
+</resources>

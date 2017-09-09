@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="false"
+        jar="D:\Documents\Desktop\Android\Hadoop\app\libs\Sunflower.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="26.0.0"
+        sha1="bf63a3baf69b17192b45e69237ac9a040c808e21">
+        <dex dex="D:\Documents\Desktop\Android\Hadoop\app\build\intermediates\pre-dexed\debug\Sunflower_055fe94c753d04084c7b7c7a97f67ab00acf7c3d.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="D:\Documents\Desktop\Android\Hadoop\app\libs\Msc.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="26.0.0"
+        sha1="87c9c56d351f41f7e5fd29a036a13ceccf885e15">
+        <dex dex="D:\Documents\Desktop\Android\Hadoop\app\build\intermediates\pre-dexed\debug\Msc_602a5a8806018ec8b6665260e802b2cf4fa039b9.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="D:\Documents\Desktop\Android\Hadoop\app\libs\achartengine-1.1.0.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="26.0.0"
+        sha1="9932e3fb9fbe54e80873e77f72a99f79e33b3250">
+        <dex dex="D:\Documents\Desktop\Android\Hadoop\app\build\intermediates\pre-dexed\debug\achartengine-1.1.0_a03afeb3c6831cedd23744b4c66faedf435d62fa.jar" />
+    </item>
+
+</items>

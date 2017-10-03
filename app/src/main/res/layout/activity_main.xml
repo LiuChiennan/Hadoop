@@ -5,6 +5,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+
+
     <!--
     borderwidth 边框宽度
     backgroundTint 按钮的背景颜色
@@ -16,16 +19,16 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@mipmap/device_access_mic"
+        android:src="@drawable/voice_button"
         android:layout_centerInParent="true"
         android:layout_alignParentRight="true"
         android:clickable="true"
         app:background="@drawable/float_button"
         app:borderWidth="0dp"
         app:rippleColor="#33728dff"
+        app:backgroundTint="@color/colorChoose"
         app:elevation="8dp"
-        app:pressedTranslationZ="16dp"
-        />
+        app:pressedTranslationZ="16dp" />
 
     <!--<LinearLayout
         android:id="@+id/flayout"
@@ -73,14 +76,14 @@
     <ProgressBar
         android:id="@+id/progress_bar"
         style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_alignParentTop="true"/>
+        android:layout_alignParentTop="true" />
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/progress_bar"
+        android:layout_alignParentTop="true"
         android:orientation="vertical"
         android:scrollbars="vertical"
         android:fadingEdge="vertical"
@@ -90,6 +93,67 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+          <!--  <com.example.buildview.mTopograph
+                android:id="@+id/topoGraph"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:id="@+id/master"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:src="@mipmap/server"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="@string/master"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/slave1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:src="@mipmap/server"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="@string/slave1"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/slave2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:src="@mipmap/server"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="@string/slave2"/>
+                </LinearLayout>
+
+
+
+                &lt;!&ndash; <com.example.buildview.mView
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content" />&ndash;&gt;
+
+
+            </com.example.buildview.mTopograph>-->
 
         </LinearLayout>
     </ScrollView>

@@ -6,4 +6,5 @@
 
     <color name="colorNormal"> #ffee33</color>
     <color name="colorPressed">#ee3333 </color>
+    <color name="colorChoose">#6C6C6C</color>
 </resources>

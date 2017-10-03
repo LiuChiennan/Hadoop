@@ -1,15 +1,18 @@
 package com.example.hadoop;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.LinearLayout;
@@ -52,7 +55,7 @@ import static android.content.ContentValues.TAG;
  *此外，各个activity的启动方式应当改变为singleTask
  */
 
-public class CPUShow extends Activity implements myPara,View.OnClickListener{
+public class CPUShow extends AppCompatActivity implements myPara,View.OnClickListener{
 
     private FloatingActionButton fab;
 //    private Button butt;
@@ -86,12 +89,12 @@ public class CPUShow extends Activity implements myPara,View.OnClickListener{
     private void initLayout(){
         //初始化语音服务
         SpeechUtility.createUtility(CPUShow.this,SpeechConstant.APPID+"="+JsonPraser.MAPPID);
-        fab=findViewById(R.id.fab);
+        fab=(FloatingActionButton)findViewById(R.id.fab);
         //设置到最顶层
         fab.bringToFront();
         fab.setOnClickListener(this);
         mToast=Toast.makeText(CPUShow.this,"",Toast.LENGTH_SHORT);
-        layout=findViewById(R.id.cpu);
+        layout=(LinearLayout)findViewById(R.id.cpu);
         /*原先的刷新按钮和下拉菜单，已不需要
         butt=findViewById(R.id.but);
         butt.setOnClickListener(this);
@@ -159,6 +162,47 @@ public class CPUShow extends Activity implements myPara,View.OnClickListener{
             default:
                 break;
         }
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case R.id.topo_graph:
+                //need to draw
+                Intent intent=new Intent();
+                intent.setData(Uri.parse("http://202.121.178.223/myweb/html/draw_topo.html"));
+                startActivity(intent);
+                break;
+            case R.id.add_node:
+                //need to do
+                break;
+            case R.id.dec_node:
+                //need to do
+                break;
+            case R.id.menu_cpu:
+                startActivity(new Intent(CPUShow.this,CPUShow.class));
+                break;
+            case R.id.menu_mem:
+                startActivity(new Intent(CPUShow.this,MEMShow.class));
+                break;
+            case R.id.menu_network:
+                startActivity(new Intent(CPUShow.this,NETWORKShow.class));
+                break;
+            case R.id.menu_load:
+                startActivity(new Intent(CPUShow.this,LOADShow.class));
+                break;
+            case R.id.refresh:
+                mGraphDatas.clear();
+                layout.removeAllViews();
+                initViews(node);
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 
@@ -250,7 +294,7 @@ public class CPUShow extends Activity implements myPara,View.OnClickListener{
         int len=jsonArray.length();
 
         renderer.setApplyBackgroundColor(true);//true:允许自定义背景颜色，false:不允许自定义背景颜色
-//        renderer.setBackgroundColor(Color.GRAY);
+        renderer.setBackgroundColor(Color.BLACK);
         //防止与ScrollView冲突
         renderer.setInScroll(true);
         // 设置XY轴名称
@@ -259,13 +303,13 @@ public class CPUShow extends Activity implements myPara,View.OnClickListener{
         // 设置标题
         renderer.setChartTitle("cpuShow in the last "+title);
         // 设置Y轴最大值,也是各个metric不同的地方
-        renderer.setYAxisMax(100);
+        renderer.setYAxisMax(chartService.manageYlabel(120));
 //        renderer.setXAxisMax(10);
 //        renderer.setXAxisMin(0);
         renderer.setYAxisMin(0);
         // 设置XY轴颜色
-        renderer.setAxesColor(Color.BLACK);
-        renderer.setLabelsColor(Color.BLACK);
+        renderer.setAxesColor(Color.WHITE);
+        renderer.setLabelsColor(Color.WHITE);
         // 设置XY轴显示
         renderer.setYLabels(10);
         renderer.setXLabels(10);
@@ -280,32 +324,33 @@ public class CPUShow extends Activity implements myPara,View.OnClickListener{
         // 是否显示网格
         renderer.setShowGrid(true);
         // 设置空白区的颜色
-        renderer.setMarginsColor(Color.WHITE);
+        renderer.setMarginsColor(Color.BLACK);
 //        renderer.setBackgroundColor(getResources().);
         // 设置坐标轴文字颜色
-        renderer.setXLabelsColor(Color.BLACK);
-        renderer.setYLabelsColor(0, Color.BLACK);
+        renderer.setXLabelsColor(Color.WHITE);
+        renderer.setYLabelsColor(0, Color.WHITE);
         // 刻度线与刻度标注之间的相对位置关系
-        renderer.setXLabelsAlign(Paint.Align.CENTER);
+        renderer.setXLabelsAlign(Paint.Align.RIGHT);
         // 刻度线与刻度标注之间的相对位置关系
-        renderer.setYLabelsAlign(Paint.Align.CENTER);
+        renderer.setYLabelsAlign(Paint.Align.RIGHT);
         renderer.setZoomButtonsVisible(false);// 是否显示放大缩小按钮
         renderer.setPanEnabled(true);
-        renderer.setMargins(new int[] { 50, 50, 20, 20 });// 设置图表的外边框(上/左/下/右)
-        renderer.setAxisTitleTextSize(20);// 设置轴标题文字的大小
-        renderer.setChartTitleTextSize(30);// 设置整个图表标题文字的大小
-        renderer.setLabelsTextSize(15);// 设置轴刻度文字的大小
-        renderer.setLegendTextSize(15);// 设置图例文字大小
+        renderer.setMargins(new int[] { 150, 130, 120, 20 });// 设置图表的外边框(上/左/下/右)
+        renderer.setAxisTitleTextSize(45);// 设置轴标题文字的大小
+        renderer.setChartTitleTextSize(60);// 设置整个图表标题文字的大小
+        renderer.setLabelsTextSize(35);// 设置轴刻度文字的大小
+        renderer.setLegendTextSize(50);// 设置图例文字大小
         renderer.setPointSize(5);// 设置点的大小(图上显示的点的大小和图例中点的大小都会被设置)
         for(int i=0;i<len;i++){
             XYSeriesRenderer curr_renderer=new XYSeriesRenderer();
             curr_renderer.setColor(lineColor[i]);
 //            curr_renderer.setPointStyle(PointStyle.CIRCLE);
             curr_renderer.setFillPoints(true);
+            curr_renderer.setLineWidth(5f);
             renderer.addSeriesRenderer(curr_renderer);
         }
 
-        graphData graphData=new graphData(dataSet,renderer,"M/d HH:mm");
+        graphData graphData=new graphData(dataSet,renderer,chartService.getDateFormat(para));
         //移除掉所有的view，便于刷新
 //        layout.removeAllViews();
 //        System.out.println("here");

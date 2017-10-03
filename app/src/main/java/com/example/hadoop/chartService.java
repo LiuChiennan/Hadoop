@@ -26,6 +26,29 @@ public class chartService {
 
     private Context context;
 
+    //数据点的数值大小进行处理，防止有些数据过大
+    public static double manageYlabel(double yMax){
+        if(yMax<1000) return yMax;
+        else if(yMax<1000000) return yMax/1000;
+        else return yMax/1000000;
+    }
+
+    //重定义y坐标label的值（依据数据点的大小）
+    public static String manageYtitle(String yTitle){
+        switch (yTitle){
+            case "Percent" :
+                return yTitle;
+            case "Bytes":
+                return "Mbytes";
+            case "Bytes/secs":
+                return "Kbytes/secs";
+            case "Loads/Procs":
+                return yTitle;
+            default:
+                return yTitle;
+        }
+    }
+
     //构造函数
     public chartService(Context context){
         this.context=context;
@@ -117,7 +140,7 @@ public class chartService {
         //单条曲线数据点个数
         int data_len=0;
         //时间轴的跨度
-        int time_para=myPara.timePara.get(para);
+        long time_para=myPara.timePara.get(para);
         //时间轴结束时间
         long end_date=new Date().getTime();
         //时间轴起始时间
@@ -153,7 +176,7 @@ public class chartService {
                 for(int j=0;j<data_len;j++){
                     //y轴数据
                     double d= curr_arr.getJSONArray(j).getDouble(0);
-                    series.add(date[j],d);
+                    series.add(date[j],chartService.manageYlabel(d));
                 }
                 dataSet.addSeries(series);
             }
@@ -164,6 +187,26 @@ public class chartService {
         return dataSet;
     }
 
+    public static String getDateFormat(String timeRange){
+        switch (timeRange){
+            case "hour":
+                return "HH:mm";
+            case "2hr":
+                return "HH:MM";
+            case "4hr":
+                return "HH:mm";
+            case "day":
+                return "HH:mm";
+            case "week":
+                return "MM/dd";
+            case "month":
+                return "MM/dd";
+            case "year":
+                return "yy/MM";
+            default:
+                return "";
+        }
+    }
 
     //得到当前月份的天数
     public static int getCurrentMonthDays() {
@@ -192,6 +235,13 @@ public class chartService {
         }
     }
 
+    public static void main(String [] args){
+        Date d=new Date();
+        System.out.println(d);
+        Date d1=new Date(d.getTime()-1000*30*24*60*60);
+        System.out.println(d1);
+    }
+
 }
 
 
@@ -200,14 +250,14 @@ public class chartService {
 //画图时需要的一些参数
 interface myPara{
     //时间参数
-    Map<String,Integer> timePara=new HashMap<String,Integer>(){{
-        put("hour",60*60);
-        put("2hr",2*60*60);
-        put("4hr",4*60*60);
-        put("day",24*60*60);
-        put("week",7*24*60*60);
-        put("month", 31*24*60*60);
-        put("year",chartService.getCurrentYearDays()*24*60*60);
+    Map<String,Long> timePara=new HashMap<String,Long>(){{
+        put("hour",60*60L);
+        put("2hr",2*60*60L);
+        put("4hr",4*60*60L);
+        put("day",24*60*60L);
+        put("week",7*24*60*60L);
+        put("month", chartService.getCurrentMonthDays()*24*60*60L);
+        put("year",chartService.getCurrentYearDays()*24*60*60L);
     }};
 
 

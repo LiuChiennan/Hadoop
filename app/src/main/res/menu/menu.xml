@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item  android:id="@+id/topo_graph"
+        android:orderInCategory="1"
+        android:title="网络拓扑"/>
+    <item
+        android:id="@+id/add_node"
+        android:orderInCategory="2"
+        android:title="增加结点"
+        />
+    <item
+        android:id="@+id/dec_node"
+        android:orderInCategory="3"
+        android:title="减少结点"
+        />
+    <item
+        android:id="@+id/menu_cpu"
+        android:orderInCategory="4"
+        android:title="cpu"
+        />
+
+    <item
+        android:id="@+id/menu_mem"
+        android:orderInCategory="5"
+        android:title="memory"
+        />
+
+    <item
+        android:id="@+id/menu_network"
+        android:orderInCategory="6"
+        android:title="network"
+        />
+
+    <item
+        android:id="@+id/menu_load"
+        android:orderInCategory="7"
+        android:title="load"
+        />
+    <item
+        android:id="@+id/refresh"
+        android:orderInCategory="8"
+        android:icon="@drawable/refresh"
+        android:title="刷新"/>
+
+</menu>

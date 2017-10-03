@@ -3,18 +3,22 @@ package com.example.hadoop;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.iflytek.cloud.ErrorCode;
@@ -38,16 +42,19 @@ import org.achartengine.renderer.XYSeriesRenderer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements myPara,View.OnClickListener{
    private FloatingActionButton fab;
     //跳转的四个按钮
-    private Button button_cpu,button_mem,button_network,button_load,audioRec;
+//    private Button button_cpu,button_mem,button_network,button_load,audioRec;
     //进度条
     private ProgressBar progressBar;
     //加载图表的那个布局
     private LinearLayout layout;
+    //action bar
+    private ActionBar actionBar;
     //用于异步获取数据
     private Handler myHandler;
     private GraphicalView view;
@@ -57,11 +64,14 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
     private ArrayList<graphData> graphDatas=new ArrayList<>();
 
     private final static int ADD_VIEW=1;
-
+    private final static int REFRESH_VIEW=0;
     private final static String TAG ="test" ;
-
+    private float fabLastX;
+    private float fabLastY;
+    boolean isClick=false;
+    private long startTime = 0;
+    private long endTime = 0;
     private Toast mToast;
-
     private String result="";
     //语法文件
     private String mGrammarContent="#ABNF 1.0 UTF-8;\n" +
@@ -83,65 +93,84 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-//        Log.d("test","-------------------------------");
-//        HttpRequest httpRequest=new HttpRequest();
-
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_main);
-        initLayout();
-        initSpeech();
-
-        myHandler=new Handler(){
-
-            @Override
-            public void handleMessage(Message msg){
-                switch (msg.what){
-                    case ADD_VIEW:
-                        super.handleMessage(msg);
-                        getViews();
-                        for(GraphicalView g:graphs){
-                            //更新UI
-                            layout.addView(g,LinearLayout.LayoutParams.MATCH_PARENT,
-                                    1200);
-                        }
-                        progressBar.setVisibility(View.GONE);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
-
-        //新建一个线程来获取数据生成GraphView
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                try{
-                    getData();
-                    Message msg=new Message();
-                    msg.what=ADD_VIEW;
-                    Looper.prepare();
-                    myHandler.sendMessage(msg);
-//                    myHandler.handleMessage(msg);
-                }catch (Exception e){
-                    System.out.println("thread error"+e);
-                }
-//                System.out.println("here6");
-            }
-        }).start();
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        try{
+            setContentView(R.layout.activity_main);
+            initLayout();
+            initSpeech();
+        }catch (Exception e){
+            System.out.println(e+" 加载错误");
+        }
+        draw();
     }
 
     private void initLayout(){
         //初始化语音服务
         SpeechUtility.createUtility(this, SpeechConstant.APPID+"="+JsonPraser.MAPPID);
         layout=(LinearLayout)findViewById(R.id.home);
-
+        actionBar=getSupportActionBar();
+        actionBar.setLogo(R.mipmap.mycluster);
+        actionBar.setDisplayUseLogoEnabled(true);
         fab=(FloatingActionButton)findViewById(R.id.fab);
         //悬浮窗口最上层
         fab.bringToFront();
         fab.setOnClickListener(this);
-        Toast.makeText(MainActivity.this,"hhh",Toast.LENGTH_SHORT).show();;
+//        Toast.makeText(MainActivity.this,"hhh",Toast.LENGTH_SHORT).show();
+        fab.setOnTouchListener(new View.OnTouchListener() {
+            //onTouch的返回值用以区分onCLick
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                switch(motionEvent.getAction()){
+                    //按钮刚被按下
+                    case MotionEvent.ACTION_DOWN:
+                        startTime = System.currentTimeMillis();
+                        isClick=false;
+                        fabLastX=motionEvent.getRawX();
+                        fabLastY=motionEvent.getRawY();
+                        break;
+                    //按钮移动
+                    case MotionEvent.ACTION_MOVE:
+                        isClick=true;
+                        //按钮移动距离
+                        int dX=(int)(motionEvent.getRawX()-fabLastX);
+                        int dY=(int)(motionEvent.getRawY()-fabLastY);
+                        //获得父布局
+                        View pView= (RelativeLayout)view.getParent();
+                        int pLeft=pView.getLeft();
+                        int pTop=pView.getTop();
+                        int pRight=pView.getRight();
+                        int pBottom=pView.getBottom();
+
+                        //获得当前控件的位置
+                        int l= view.getLeft()+dX;
+                        int t=view.getTop()+dY;
+                        int r=view.getRight()+dX;
+                        int b=view.getBottom()+dY;
+
+                        //防止超出父布局
+                        if(l<pLeft) l=pLeft;
+                        if(t<pTop) t=pTop;
+                        if(r>pRight) r=pRight;
+                        if(b>pBottom) b=pBottom;
+
+                        view.layout(l,t,r,b);
+                        fabLastX=motionEvent.getRawX();
+                        fabLastY=motionEvent.getRawY();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        endTime = System.currentTimeMillis();
+                        //当从点击到弹起小于半秒的时候,则判断为点击,如果超过则不响应点击事件  
+                        if((endTime - startTime) > 0.1 * 1000L){
+                            isClick = true;
+                        }else{
+                            isClick = false;
+                        }
+                        break;
+                }
+                return isClick;
+            }
+        });
         /*button_cpu=(Button)findViewById(R.id.cpu);
         button_cpu.setOnClickListener(this);
         button_mem=(Button)findViewById(R.id.mem);
@@ -156,6 +185,29 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
 
         progressBar=(ProgressBar)findViewById(R.id.progress_bar);
         progressBar.setVisibility(View.VISIBLE);
+        myHandler=new Handler(){
+            @Override
+            public void handleMessage(Message msg){
+                switch (msg.what){
+                    case ADD_VIEW:
+                        try{
+                            super.handleMessage(msg);
+                            getViews();
+                            for(GraphicalView g:graphs){
+                                //更新UI
+                                layout.addView(g,LinearLayout.LayoutParams.MATCH_PARENT,
+                                        1500);
+                            }
+                            progressBar.setVisibility(View.GONE);
+                        }catch (Exception e){
+                            System.out.println(e + " 更新UI 错误");
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
     }
     private void initSpeech(){
 //        System.out.println("here1");
@@ -193,10 +245,9 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
                     mRecoDialog.show();
                 }
                 else{
-                    initSpeech();
+//                    initSpeech();
                     mRecoDialog.show();
                 }
-
                 /*if(mSpeechRecognizer != null){
                     mSpeechRecognizer.startListening(mRecListener);
                 }
@@ -214,6 +265,62 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
         super.onWindowFocusChanged(hasFocus);
         progressBar.setVisibility(View.GONE);
     }*/
+
+   @Override
+   public boolean onCreateOptionsMenu(Menu menu){
+       getMenuInflater().inflate(R.menu.menu,menu);
+       setIconEnable(menu,true);
+       return super.onCreateOptionsMenu(menu);
+   }
+    private void setIconEnable(Menu menu, boolean enable){
+        try{
+            Class<?> clazz = Class.forName("com.android.internal.view.menu.MenuBuilder");
+            Method m = clazz.getDeclaredMethod("setOptionalIconsVisible",boolean.class);
+            m.setAccessible(true);
+            //MenuBuilder实现Menu接口，创建菜单时，传进来的menu其实就是MenuBuilder对象(java的多态特征)  
+            m.invoke(menu, enable);
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+    }
+   @Override
+   public boolean onOptionsItemSelected(MenuItem item){
+       switch (item.getItemId()){
+           case R.id.topo_graph:
+               Intent intent=new Intent();
+               intent.setData(Uri.parse("http://202.121.178.223/myweb/html/draw_topo.html"));
+               startActivity(intent);
+               //need to draw
+               break;
+           case R.id.add_node:
+               //need to do
+               break;
+           case R.id.dec_node:
+               //need to do
+               break;
+           case R.id.menu_cpu:
+               startActivity(new Intent(MainActivity.this,CPUShow.class));
+               break;
+           case R.id.menu_mem:
+               startActivity(new Intent(MainActivity.this,MEMShow.class));
+               break;
+           case R.id.menu_network:
+               startActivity(new Intent(MainActivity.this,NETWORKShow.class));
+               break;
+           case R.id.menu_load:
+               startActivity(new Intent(MainActivity.this,LOADShow.class));
+               break;
+           case R.id.refresh:
+               progressBar.setVisibility(View.VISIBLE);
+               reDraw();
+               break;
+           default:
+               break;
+       }
+       return super.onOptionsItemSelected(item);
+   }
 
     //初始化，并获得数据，生成画图所需的graphData
     private void getData(){
@@ -263,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
 //            System.out.println("7");
             graphData temp;
 
-            temp=getGraphData(new JSONArray(res_cpu),"hour",layout,"cpu",100,"Percent");
+            temp=getGraphData(new JSONArray(res_cpu),"hour",layout,"cpu",120,"Percent");
             graphDatas.add(temp);
 
 //            System.out.println("8");
@@ -272,7 +379,7 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
             temp=getGraphData(new JSONArray(res_mem),"hour",layout,"mem",2000000000,"Bytes");
             graphDatas.add(temp);
 //            System.out.println("9");
-            temp=getGraphData(new JSONArray(res_network),"hour",layout,"network",30000,"Bytes/secs");
+            temp=getGraphData(new JSONArray(res_network),"hour",layout,"network",40000,"Bytes/secs");
             graphDatas.add(temp);
 //            System.out.println("10");
             temp=getGraphData(new JSONArray(res_load),"hour",layout,"load",8.5,"Loads/Procs");
@@ -300,70 +407,103 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
 //        System.out.println(4);
 //        System.out.println("test");
         int len=jsonArray.length();
-
+        renderer.setMargins(new int[] { 20, 30, 15, 0 });
         renderer.setApplyBackgroundColor(true);//true:允许自定义背景颜色，false:不允许自定义背景颜色
 //        renderer.setBackgroundColor(Color.GRAY);
+        renderer.setBackgroundColor(Color.BLACK);
         //防止与ScrollView冲突
         renderer.setInScroll(true);
         // 设置XY轴名称
         renderer.setXTitle("时间");
-        renderer.setYTitle(yTitle);
+        renderer.setYTitle(chartService.manageYtitle(yTitle));
         // 设置标题
         renderer.setChartTitle(chartTitle +" Show in the last hour");
         // 设置Y轴最大值
-        renderer.setYAxisMax(yMax);
+        renderer.setYAxisMax(chartService.manageYlabel(yMax));
 //        renderer.setXAxisMax(10);
 //        renderer.setXAxisMin(0);
         renderer.setYAxisMin(0);
         // 设置XY轴颜色
-        renderer.setAxesColor(Color.BLACK);
-        renderer.setLabelsColor(Color.BLACK);
+        renderer.setAxesColor(Color.WHITE);
+        renderer.setLabelsColor(Color.WHITE);
+
         // 设置XY轴显示
         renderer.setYLabels(10);
         renderer.setXLabels(10);
         // 设置 是否显示图例
         renderer.setShowLegend(true);
         // 设置不显示放大缩小图标
-        renderer.setZoomEnabled(true);
+        renderer.setZoomEnabled(false);
         // 设置是否支持图表缩放
-        renderer.setPanEnabled(false, false);
+        renderer.setPanEnabled(true, true);
         // 设置是否可点击
         renderer.setClickEnabled(false);
         // 是否显示网格
         renderer.setShowGrid(true);
+        renderer.setGridColor(Color.GRAY);
         // 设置空白区的颜色
-        renderer.setMarginsColor(Color.WHITE);
+        renderer.setMarginsColor(Color.BLACK);
 //        renderer.setBackgroundColor(getResources().);
         // 设置坐标轴文字颜色
-        renderer.setXLabelsColor(Color.BLACK);
-        renderer.setYLabelsColor(0, Color.BLACK);
+        renderer.setXLabelsColor(Color.WHITE);
+        renderer.setYLabelsColor(0, Color.WHITE);
         // 刻度线与刻度标注之间的相对位置关系
-        renderer.setXLabelsAlign(Paint.Align.CENTER);
+        renderer.setXLabelsAlign(Paint.Align.RIGHT);
         // 刻度线与刻度标注之间的相对位置关系
-        renderer.setYLabelsAlign(Paint.Align.CENTER);
+        renderer.setYLabelsAlign(Paint.Align.RIGHT);
         renderer.setZoomButtonsVisible(false);// 是否显示放大缩小按钮
+        renderer.setZoomRate(3f);
         renderer.setPanEnabled(true);
-        renderer.setMargins(new int[] { 50, 50, 20, 20 });// 设置图表的外边框(上/左/下/右)
-        renderer.setAxisTitleTextSize(20);// 设置轴标题文字的大小
-        renderer.setChartTitleTextSize(30);// 设置整个图表标题文字的大小
-        renderer.setLabelsTextSize(15);// 设置轴刻度文字的大小
-        renderer.setLegendTextSize(15);// 设置图例文字大小
+        renderer.setMargins(new int[] { 150, 130, 120, 20 });// 设置图表的外边框(上/左/下/右)
+        renderer.setAxisTitleTextSize(45);// 设置轴标题文字的大小
+        renderer.setChartTitleTextSize(60);// 设置整个图表标题文字的大小
+        renderer.setLabelsTextSize(30);// 设置轴刻度文字的大小
+        renderer.setLegendTextSize(50);// 设置图例文字大小
         renderer.setPointSize(5);// 设置点的大小(图上显示的点的大小和图例中点的大小都会被设置)
         for(int i=0;i<len;i++){
             XYSeriesRenderer curr_renderer=new XYSeriesRenderer();
             curr_renderer.setColor(lineColor[i]);
 //            curr_renderer.setPointStyle(PointStyle.CIRCLE);
             curr_renderer.setFillPoints(true);
+            curr_renderer.setLineWidth(5f);
+            if(renderer.getChartTitle() == "mem"){
+                curr_renderer.setFillPoints(true);
+            }
             renderer.addSeriesRenderer(curr_renderer);
         }
 //        System.out.println("here+");
 
-        return new graphData(dataSet,renderer,"M/d HH:mm");
+        return new graphData(dataSet,renderer,chartService.getDateFormat(timeRange));
         //这个函数会用到Handler
 //        GraphicalView view = ChartFactory.getTimeChartView(this, dataSet,
 //                renderer,"M/d HH:mm");
-////        layout.setBackgroundColor(Color.BLACK);
+//        layout.setBackgroundColor(Color.BLACK);
 
+    }
+    private void draw(){
+        //新建一个线程来获取数据生成GraphView
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    getData();
+                    Message msg=new Message();
+                    msg.what=ADD_VIEW;
+                    Looper.prepare();
+                    myHandler.sendMessage(msg);
+//                    myHandler.handleMessage(msg);
+                }catch (Exception e){
+                    System.out.println("thread error"+e);
+                }
+//                System.out.println("here6");
+            }
+        }).start();
+    }
+    private void reDraw(){
+        graphDatas.clear();
+        graphs.clear();
+        layout.removeAllViews();
+        draw();
     }
 
     //生成各个view
@@ -436,6 +576,10 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
                     case JsonPraser.REC_ERROR:
                         Toast.makeText(MainActivity.this,"识别错误",Toast.LENGTH_SHORT).show();
                         break;
+                    case JsonPraser.FLUSH_FLAG:
+                        progressBar.setVisibility(View.VISIBLE);
+                        reDraw();
+                        break;
                     default:
                         break;
                 }
@@ -471,23 +615,26 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
                 int rat=JsonPraser.manageResult(result);
                 Intent intent;
                 switch (rat){
+                    case JsonPraser.FLUSH_FLAG:
+
+                        break;
                     //cpu
-                    case 0:
+                    case JsonPraser.CPU_FLAG:
                         intent=new Intent(MainActivity.this,CPUShow.class);
                         startActivity(intent);
                         break;
                     //mem
-                    case 1:
+                    case JsonPraser.MAIN_FLAG:
                         intent=new Intent(MainActivity.this,MEMShow.class);
                         startActivity(intent);
                         break;
                     //load
-                    case 2:
+                    case JsonPraser.LOAD_FLAG:
                         intent=new Intent(MainActivity.this,LOADShow.class);
                         startActivity(intent);
                         break;
                     //network
-                    case 3:
+                    case JsonPraser.NETWORK_FLAG:
                         intent=new Intent(MainActivity.this,NETWORKShow.class);
                         startActivity(intent);
                         break;
@@ -495,7 +642,7 @@ public class MainActivity extends AppCompatActivity implements myPara,View.OnCli
 //                    case 4:
 //                        break;
                     //error
-                    case 5:
+                    case JsonPraser.REC_ERROR:
                         Toast.makeText(MainActivity.this,"识别错误",Toast.LENGTH_SHORT).show();
                         break;
                 }

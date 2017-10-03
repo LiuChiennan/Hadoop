@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Hadoop</string>
+    <string name="app_name">MyCluster</string>
     <string name="button_name">刷新</string>
     <string name="sphints">选择一个节点</string>
     <string-array name="node">
@@ -8,4 +8,8 @@
         <item>slave2</item>
         <item>all</item>
     </string-array>
+
+    <string name="master">master\n192.168.0.106 </string>
+    <string name="slave1">slave1\n192.168.0.107 </string>
+    <string name="slave2">slave2\n192.168.0.108 </string>
 </resources>
